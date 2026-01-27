@@ -25,10 +25,10 @@
     {\Large Automated Quality Inspection Using Computer Vision\par}
     \vspace{2cm}
     \textbf{Submitted by:}\\
-    Shikhar Shashank (2301199), Prince Goyal (2301158), Samadrita Mondal (2301185)
+    Prince Goyal (2301158), Samadrita Mondal (2301185), Shikhar Shashank (2301199)
     \\
     Computer Science and Engineering\\
-    Indian Institue of Information Technology, Guwahati\\
+    Indian Institute of Information Technology, Guwahati\\
     \vfill
     \textbf{Academic Year:} 2025--2026
 \end{titlepage}
@@ -40,114 +40,128 @@
 \section{Introduction}
 
 \subsection{Purpose of this Document}
-The main aim of this document is to describe the Software Requirement Specification (SRS) for the Automated Quality Inspection system using Computer Vision. This document defines the purpose, scope, functional requirements, non-functional requirements, constraints, and interfaces of the system. It serves as a reference for developers, testers, project managers, and stakeholders.
+The purpose of this Software Requirement Specification (SRS) document is to describe the functional and non-functional requirements of the Automated Quality Inspection (AQI) system using Computer Vision. This document serves as a reference for developers, testers, project managers, and stakeholders to understand system capabilities, constraints, and expected behavior.
 
 \subsection{Scope of this Document}
-This document describes the overall working and main objective of the proposed system. The system aims to automate the inspection of products using computer vision techniques, reducing manual errors and inspection time. It also explains the value provided to customers by improving accuracy and efficiency. The scope includes an overview of development cost and estimated time required to complete the project.
+The proposed system automates the inspection of manufactured products using computer vision and machine learning techniques. Unlike traditional inspection systems, the proposed solution incorporates self-supervised anomaly detection, explainable AI, human-in-the-loop feedback, and online continual learning to adapt to evolving defect patterns and reduce dependency on labeled defect data.
 
 \subsection{Overview}
-This section provides a summary and overall review of the product. The Automated Quality Inspection System captures product images, processes them using computer vision algorithms, and identifies defects automatically. The system enhances manufacturing quality control processes by ensuring consistency and reliability.
+The Automated Quality Inspection System captures product images using industrial cameras, analyzes them using deep learning-based anomaly detection models, and identifies defective regions. The system allows human inspectors to review results, provide feedback, and improve system performance over time through continual learning.
 
 % -------------------- GENERAL DESCRIPTION --------------------
 \section{General Description}
 
-This section describes the general functions of the product including user objectives, user characteristics, features, benefits, and importance of the system. It also explains the characteristics of the user community.
+The system is designed to assist manufacturing quality control by providing accurate, adaptive, and trustworthy defect detection. It supports collaboration between automated inspection models and human inspectors to ensure reliability in real-world industrial environments.
 
-The system allows users to upload or capture images of products, analyze them for defects, and generate inspection results. The primary users include operators, quality engineers, and administrators. The system improves inspection accuracy, reduces inspection cost, and minimizes human intervention.
+Primary users include:
+\begin{itemize}
+    \item Quality control operators
+    \item Manufacturing engineers
+    \item System administrators
+\end{itemize}
+
+The system improves inspection consistency, reduces inspection time, and adapts to new defect types without extensive retraining.
+
+% -------------------- NOVEL FEATURES --------------------
+\section{Novel Features of the Proposed System}
+
+\subsection{Human-in-the-Loop Inspection}
+The system incorporates a human-in-the-loop mechanism where inspectors can validate detected defects, correct false positives, and mark missed defect regions. This feedback is stored and used to refine the model, enabling continuous improvement and increased trust in automated decisions.
+
+\subsection{Self-Supervised Anomaly Detection}
+Instead of relying on labeled defect samples, the system learns the visual patterns of defect-free products using self-supervised learning. Any deviation from learned normal patterns is flagged as a potential defect, allowing effective detection even with limited or no defect data.
+
+\subsection{Explainability and Trustworthy AI}
+The system provides visual explanations such as heatmaps highlighting defective regions and confidence scores for predictions. This improves transparency, enables better human understanding of model decisions, and supports use in safety-critical manufacturing environments.
+
+\subsection{Online Continual Learning}
+The proposed system supports online continual learning by incorporating validated human feedback into incremental model updates. This allows the system to adapt to new defect types and changing manufacturing conditions without complete retraining.
 
 % -------------------- FUNCTIONAL REQUIREMENTS --------------------
 \section{Functional Requirements}
 
-This section explains the expected behavior of the system and its outcomes. Functional requirements specify the relationship between inputs and outputs of the system and are arranged in ranked order.
-
 \begin{itemize}
-    \item The system shall accept product images as input.
-    \item The system shall preprocess images to improve quality.
-    \item The system shall analyze images to detect defects.
+    \item The system shall capture or accept product images as input.
+    \item The system shall preprocess images for noise reduction and normalization.
+    \item The system shall perform self-supervised anomaly detection on input images.
+    \item The system shall identify and localize anomalous (defective) regions.
+    \item The system shall generate visual explanations for detected defects.
+    \item The system shall provide confidence scores for inspection results.
+    \item The system shall allow human inspectors to validate or correct results.
+    \item The system shall store human feedback and inspection history.
+    \item The system shall update its model incrementally using validated feedback.
     \item The system shall classify products as defective or non-defective.
-    \item The system shall highlight defective regions in the image.
-    \item The system shall store inspection results for future reference.
 \end{itemize}
-
-Each requirement specifies the data inputs, valid input ranges, processing actions, and generated outputs.
 
 % -------------------- INTERFACE REQUIREMENTS --------------------
 \section{Interface Requirements}
 
-This section describes how the software communicates with users and other software components.
-
 \subsection{User Interface}
-The user interface allows users to upload images, view inspection results, and analyze defect regions visually.
+The user interface allows operators to upload or capture images, visualize detected defects with explanations, provide feedback, and review inspection history.
 
 \subsection{Software Interface}
-The system interfaces with image processing libraries and machine learning frameworks for defect detection.
+The system interfaces with computer vision libraries, machine learning frameworks, and databases for model inference, training, and data storage.
 
 \subsection{Hardware Interface}
-The system interfaces with cameras for image acquisition and optional GPU hardware for faster processing.
+The system interfaces with industrial cameras and optional GPU hardware for accelerated processing.
 
 % -------------------- PERFORMANCE REQUIREMENTS --------------------
 \section{Performance Requirements}
 
-This section describes how the system performs under specific conditions.
-
 \subsection{Static Requirements}
-Static requirements include system constraints that do not affect execution behavior, such as supported platforms and image formats.
+\begin{itemize}
+    \item The system shall support common image formats (JPEG, PNG).
+    \item The system shall run on standard workstation or edge devices.
+\end{itemize}
 
 \subsection{Dynamic Requirements}
-Dynamic requirements specify execution behavior, such as:
 \begin{itemize}
-    \item Image processing time shall not exceed 2 seconds per image.
-    \item System accuracy shall be at least 90\%.
-    \item Memory usage shall remain within defined limits.
+    \item Image inspection time shall not exceed 2 seconds per image.
+    \item Defect detection accuracy shall be at least 90\%.
+    \item The system shall handle continuous image streams without failure.
 \end{itemize}
 
 % -------------------- DESIGN CONSTRAINTS --------------------
 \section{Design Constraints}
 
-This section describes limitations and restrictions imposed on the design of the system. Constraints include hardware limitations, software dependencies, and standards that must be followed. The system must operate within available computational resources and comply with security and reliability requirements.
+The system must operate within limited computational resources and utilize open-source software tools. It must ensure data security, reliability, and compliance with standard software engineering practices.
 
 % -------------------- NON-FUNCTIONAL ATTRIBUTES --------------------
 \section{Non-Functional Attributes}
 
-The non-functional requirements include:
 \begin{itemize}
-    \item Security
     \item Reliability
     \item Scalability
+    \item Security
+    \item Explainability
+    \item Maintainability
     \item Portability
     \item Data Integrity
-    \item Application Compatibility
-    \item Reusability
 \end{itemize}
-
-These attributes ensure better performance and usability of the system.
 
 % -------------------- SCHEDULE AND BUDGET --------------------
 \section{Preliminary Schedule and Budget}
 
-This section describes the initial project plan, estimated timeline, and development cost. The project is expected to be completed within the specified academic duration with minimal hardware and software cost due to the use of open-source tools.
+The project is planned to be completed within the academic semester. Open-source frameworks and minimal hardware requirements ensure low development and deployment cost.
 
 % -------------------- APPENDICES --------------------
 \section{Appendices}
 
-This section includes additional information such as references, definitions of technical terms, acronyms, and abbreviations used throughout the document.
+This section contains definitions, acronyms, and additional information relevant to the system.
 
 % -------------------- USES OF SRS --------------------
 \section{Uses of SRS Document}
 
 \begin{itemize}
-    \item Development teams use it to build the system according to requirements.
-    \item Test plans are created based on the described external behavior.
-    \item Maintenance teams use it to understand system functionality.
-    \item Project managers use it for planning and estimation.
-    \item Customers rely on it to understand expected product behavior.
-    \item Acts as a contract between developer and customer.
-    \item Serves documentation purposes.
+    \item Serves as a reference for system development and testing
+    \item Guides system validation and verification
+    \item Assists project planning and estimation
+    \item Acts as a formal agreement between stakeholders
 \end{itemize}
 
 % -------------------- CONCLUSION --------------------
 \section{Conclusion}
 
-Software development requires a well-structured Software Requirement Specification (SRS). The SRS helps stakeholders communicate effectively, guides developers and testers, supports maintenance activities, and assists project management. A clear SRS ensures that the software meets functional and non-functional requirements, resulting in a quality product delivered on time and within budget.
+This SRS defines the requirements for a novel Automated Quality Inspection system that integrates self-supervised learning, explainable AI, human-in-the-loop feedback, and continual learning. The proposed system addresses key limitations of existing inspection solutions and enables adaptive, transparent, and reliable quality control in manufacturing environments.
 
 \end{document}
