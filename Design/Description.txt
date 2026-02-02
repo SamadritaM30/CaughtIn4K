@@ -45,10 +45,10 @@ The following external actors interact with the system:
 
 The main workflow of the system is as follows:
 
-1. The Quality Operator captures or uploads an image.
-2. The system performs Anomaly Detection.
+1. The Quality Operator captures or uploads images
+2  The image get preprocessed
+3. The system performs Anomaly Detection.
 3. Anomaly Detection includes:
-   - Preprocess Image
    - Localise Defective Regions
    - Generate Confidence Score
    - Generate Visual Explanations
@@ -66,7 +66,7 @@ The main workflow of the system is as follows:
 ------------------------------------------------------------
 
 4. Include Relationships
-
+The dashed lines represent include relationships and all the others are associative relationships.
 The following use cases use <<include>> relationships because they always occur as part of the main process:
 
 - Anomaly Detection includes:
@@ -79,6 +79,7 @@ The following use cases use <<include>> relationships because they always occur 
 - Classify Products includes:
   • Store Inspection Result
   • Validate Inspection Result
+  
 
 - Validate Inspection Result includes:
   • Correct False Positives
