@@ -1,0 +1,67 @@
+UML CLASS DIAGRAM – RELATIONSHIPS AND CARDINALITIES
+
+1. Inheritance
+
+The User class is the base class for all system users.
+The following classes inherit from User:
+* QualityOperator
+* ManufacturingEngineer
+* SystemAdministrator
+This represents an IS-A relationship. All users share common properties such as userID, name, role, and login/logout functionality, while each subclass defines role-specific operations.
+
+---
+
+2. Association Relationships
+
+QualityOperator and Inspection
+* One QualityOperator can perform zero or more Inspections.
+* Each Inspection is performed by exactly one QualityOperator.
+  (Cardinality: 1 to 0..*)
+
+ManufacturingEngineer and VisionModel
+* A ManufacturingEngineer can trigger updates and monitor the VisionModel.
+* The VisionModel is managed by one ManufacturingEngineer at a time.
+
+Inspection and InspectionResult
+* Each Inspection produces exactly one InspectionResult.
+* Each InspectionResult belongs to one Inspection.
+  (Cardinality: 1 to 1)
+
+---
+
+3. Composition Relationships
+
+Inspection and Image
+* An Inspection is composed of exactly one Image.
+* The Image cannot exist independently without the Inspection.
+  (Cardinality: 1 to 1)
+
+InspectionResult and Defect
+* An InspectionResult may contain zero or more Defects.
+* Defects cannot exist without an InspectionResult.
+  (Cardinality: 1 to 0..*)
+
+---
+
+4. Aggregation Relationship
+
+VisionModel and InspectionResult
+* A VisionModel generates multiple InspectionResults.
+* InspectionResults can exist independently for record and reporting purposes.
+  (Cardinality: 1 to 0..*)
+
+---
+
+5. Dependency Relationship
+
+VisionModel and InspectionResult
+* The VisionModel creates InspectionResult objects during defect detection.
+* This is represented as a «creates» dependency relationship.
+
+---
+
+Summary
+
+The UML class diagram uses inheritance to model user roles, association to represent interactions between users and inspections, composition for strong ownership of images and defects, aggregation for loosely coupled inspection results, and dependency to show object creation during processing. The assumed cardinalities reflect real-world industrial inspection workflows.
+
+---
