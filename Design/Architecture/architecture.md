@@ -93,10 +93,6 @@ The Layered Architecture is suitable for the Automated Quality Inspection System
 
   * Not chosen because heavy service orchestration and communication overhead are unsuitable for performance-critical image processing workflows.
 
-* **Event-Driven Architecture**
-
-  * Not chosen because the inspection process is sequential and deterministic, not asynchronous or event-based.
-
 Hence, **Layered Architecture** provides the best balance of simplicity, performance, scalability, and maintainability for the Automated Quality Inspection System.
 
 ---
