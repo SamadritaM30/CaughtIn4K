@@ -99,13 +99,13 @@ The Layered Architecture is suitable for the Automated Quality Inspection System
 
 ```text
 [User Interface]
-        |
-        v
+       ^ |
+       | v
 [Inspection Services]
-        |
-        v
+       ^ |
+       | v
 [Defect Detection Logic]
-        |
-        v
+       ^ |
+       | v
 [Database / Storage]
 ```
