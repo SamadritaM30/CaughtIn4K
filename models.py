@@ -52,9 +52,15 @@ class HumanReview(db.Model):
     predicted_label = db.Column(db.String(50), nullable=False)
     confidence = db.Column(db.Float, nullable=False)
 
+    # Item / product category (e.g. "bottle") – used to locate model weights
+    item_name = db.Column(db.String(120), nullable=True)
+
     human_label = db.Column(db.String(50))
     is_correct = db.Column(db.Boolean)
     reviewed = db.Column(db.Boolean, default=False)
+
+    # Set to True after a successful incremental retrain triggered by this review
+    retrained = db.Column(db.Boolean, default=False)
 
 
 @login_manager.user_loader

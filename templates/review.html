@@ -1,10 +1,400 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Human Review Panel</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human Review Panel · AQI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <style>
+        /* ── Review-page specific styles ─────────────────────────────── */
+        .review-hero {
+            padding: 40px 40px 0;
+            position: relative;
+            z-index: 2;
+        }
+        .review-hero h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, var(--orange) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+        }
+        .review-hero p { color: var(--text-muted); font-size: 0.9rem; }
+
+        .review-stats {
+            display: flex;
+            gap: 16px;
+            padding: 24px 40px;
+            position: relative;
+            z-index: 2;
+        }
+        .stat-chip {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+        .stat-chip .dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .dot-pending  { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+        .dot-reviewed { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .stat-chip strong { color: #fff; }
+
+        /* ── Empty state ───────────────────────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+            position: relative;
+            z-index: 2;
+        }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 16px; }
+        .empty-state h3 { font-size: 1.2rem; color: var(--text); margin-bottom: 8px; }
+
+        /* ── Review grid ───────────────────────────────────────────────── */
+        .review-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 24px;
+            padding: 0 40px 40px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .review-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            overflow: hidden;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            animation: fadeSlideUp 0.4s ease both;
+        }
+        .review-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255,107,53,0.35);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-image-wrap {
+            position: relative;
+            width: 100%;
+            padding-top: 60%;
+            background: #111;
+            overflow: hidden;
+        }
+        .card-image-wrap img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+        .review-card:hover .card-image-wrap img {
+            transform: scale(1.04);
+        }
+        .card-badge {
+            position: absolute;
+            top: 12px; right: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            backdrop-filter: blur(8px);
+        }
+        .badge-defective {
+            background: rgba(239,68,68,0.25);
+            border: 1px solid rgba(239,68,68,0.6);
+            color: #fca5a5;
+        }
+        .badge-good {
+            background: rgba(16,185,129,0.25);
+            border: 1px solid rgba(16,185,129,0.6);
+            color: #6ee7b7;
+        }
+
+        .card-body {
+            padding: 20px 20px 16px;
+        }
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        .card-meta-left { flex: 1; min-width: 0; }
+        .img-name {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        .prediction-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .confidence-pill {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            margin-left: 12px;
+        }
+        .confidence-pill span { color: #fff; font-weight: 600; }
+
+        /* ── Confidence bar ─────────────────────────────────────────────── */
+        .conf-bar-wrap { margin-bottom: 18px; }
+        .conf-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .conf-bar-track {
+            height: 5px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .conf-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.6s ease;
+        }
+        .fill-defective { background: linear-gradient(90deg, #ef4444, #f97316); }
+        .fill-good      { background: linear-gradient(90deg, #10b981, #34d399); }
+
+        /* ── Action buttons ─────────────────────────────────────────────── */
+        .action-row {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+        .btn-correct {
+            flex: 1;
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-correct:hover { opacity: 0.9; transform: scale(1.02); }
+
+        .incorrect-group {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .label-input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 9px 14px;
+            color: #fff;
+            font-size: 0.82rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+        .label-input:focus {
+            outline: none;
+            border-color: var(--orange);
+            background: rgba(255,107,53,0.06);
+        }
+        .label-input::placeholder { color: var(--text-muted); }
+        .btn-incorrect {
+            background: linear-gradient(135deg, #b91c1c, #ef4444);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-incorrect:hover { opacity: 0.9; transform: scale(1.02); }
+
+        /* ── Section heading ─────────────────────────────────────────────── */
+        .section-heading {
+            padding: 0 40px 16px;
+            position: relative;
+            z-index: 2;
+        }
+        .section-heading h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-heading h2 .count-badge {
+            background: var(--orange);
+            color: #000;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 8px 40px 24px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ── Flash messages ─────────────────────────────────────────────── */
+        .flash-list {
+            padding: 16px 40px 0;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .flash-msg {
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: fadeSlideUp 0.3s ease;
+        }
+        .flash-success { background: var(--success-bg); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+        .flash-error   { background: var(--error-bg);   border: 1px solid rgba(239,68,68,0.3);  color: #fca5a5; }
+        .flash-warning { background: rgba(255,165,0,0.1); border: 1px solid rgba(255,165,0,0.3); color: #fcd34d; }
+        .flash-retrain { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; }
+
+        /* ── Reviewed history ─────────────────────────────────────────────── */
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            padding: 0 40px 60px;
+            position: relative;
+            z-index: 2;
+        }
+        .history-card {
+            background: rgba(26,26,26,0.6);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            opacity: 0.75;
+            transition: opacity 0.2s;
+        }
+        .history-card:hover { opacity: 1; }
+        .history-image-wrap {
+            position: relative;
+            width: 100%;
+            padding-top: 50%;
+            background: #111;
+            overflow: hidden;
+        }
+        .history-image-wrap img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(20%);
+        }
+        .history-body {
+            padding: 12px 14px;
+        }
+        .history-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+        }
+        .history-row .label { color: var(--text-muted); }
+        .outcome-correct   { color: #6ee7b7; font-weight: 600; }
+        .outcome-incorrect { color: #fca5a5; font-weight: 600; }
+        .history-correction {
+            margin-top: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .history-correction strong { color: var(--accent); }
+
+        /* ── Retrain indicator ─────────────────────────────────────────────── */
+        .retrain-banner {
+            margin: 0 40px 24px;
+            background: rgba(59,130,246,0.08);
+            border: 1px solid rgba(59,130,246,0.25);
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 0.85rem;
+            color: #93c5fd;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 2;
+        }
+        .retrain-spinner {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(147,197,253,0.3);
+            border-top-color: #93c5fd;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            .review-hero, .review-stats, .review-grid,
+            .history-grid, .section-heading, .flash-list, .divider, .retrain-banner {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+            .review-grid { grid-template-columns: 1fr; }
+            .action-row  { flex-direction: column; }
+        }
+    </style>
 </head>
 <body>
+
+<canvas id="flame-canvas"></canvas>
 
 <header>
     <div class="logo-section">
@@ -12,44 +402,236 @@
         <span class="system-title">Human Review Panel</span>
     </div>
     <div class="user-section">
-        <a href="{{ url_for('dashboard.dashboard') }}" class="logout-btn">Back to Dashboard</a>
+        <a href="{{ url_for('dashboard.dashboard') }}" class="logout-btn">← Dashboard</a>
     </div>
 </header>
 
-<div class="container">
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-list">
+    {% for category, message in messages %}
+    <div class="flash-msg flash-{{ category }}">
+        {% if category == 'success' %}✅{% elif category == 'error' %}❌{% elif category == 'retrain' %}🔄{% else %}⚠️{% endif %}
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
 
-    <div class="card">
-        <h3>Pending Reviews</h3>
+<!-- Hero -->
+<div class="review-hero">
+    <h1>Inspection Review Queue</h1>
+    <p>Validate AI predictions and improve model accuracy with your corrections.</p>
+</div>
 
-        {% for item in items %}
-        <div style="border:1px solid #333; padding:20px; margin:20px; border-radius:10px;">
+<!-- Stats chips -->
+<div class="review-stats">
+    <div class="stat-chip">
+        <span class="dot dot-pending"></span>
+        <span>Pending: <strong>{{ items | length }}</strong></span>
+    </div>
+    <div class="stat-chip">
+        <span class="dot dot-reviewed"></span>
+        <span>Recently reviewed: <strong>{{ reviewed_items | length }}</strong></span>
+    </div>
+</div>
 
-            <img src="{{ url_for('static', filename=item.img_path) }}" class="heatmap-img"><br><br>
+<!-- Pending reviews -->
+<div class="section-heading">
+    <h2>
+        Pending Reviews
+        {% if items %}<span class="count-badge">{{ items | length }}</span>{% endif %}
+    </h2>
+</div>
+<div class="divider"></div>
 
-            <b>Model Prediction:</b> {{ item.predicted_label }} <br>
-            <b>Confidence:</b> {{ item.confidence }} <br><br>
+{% if not items %}
+<div class="empty-state">
+    <div class="icon">🎉</div>
+    <h3>All caught up!</h3>
+    <p>No pending reviews right now. New items will appear here after each inspection run.</p>
+</div>
+{% else %}
+<div class="review-grid">
+    {% for item in items %}
+    <div class="review-card" style="animation-delay: {{ loop.index0 * 0.06 }}s">
 
-            <form method="POST" action="/submit_review/{{ item.id }}">
-
-                <button name="is_correct" value="yes" style="background:#10b981; color:white;">
-                    ✔ Correct
-                </button>
-
-                <br><br>
-
-                <input type="text" name="correct_label" placeholder="Correct label if wrong">
-
-                <button name="is_correct" value="no" style="background:#ef4444; color:white;">
-                    ❌ Incorrect
-                </button>
-
-            </form>
+        <div class="card-image-wrap">
+            <img src="{{ url_for('static', filename=item.img_path) }}"
+                 alt="Inspection image {{ item.id }}"
+                 loading="lazy">
+            <span class="card-badge {% if 'DEFECTIVE' in item.predicted_label %}badge-defective{% else %}badge-good{% endif %}">
+                {{ item.predicted_label }}
+            </span>
         </div>
-        {% endfor %}
+
+        <div class="card-body">
+            <div class="card-meta">
+                <div class="card-meta-left">
+                    <div class="img-name">{{ item.img_path | replace('results/', '') }}</div>
+                    <div class="prediction-label">Predicted: {{ item.predicted_label }}</div>
+                </div>
+                <div class="confidence-pill">
+                    Score: <span>{{ "%.3f" | format(item.confidence) }}</span>
+                </div>
+            </div>
+
+            <!-- Confidence bar -->
+            <div class="conf-bar-wrap">
+                <div class="conf-bar-label">
+                    <span>Anomaly score</span>
+                    <span>{{ "%.1f" | format(item.confidence * 100) }}%</span>
+                </div>
+                <div class="conf-bar-track">
+                    <div class="conf-bar-fill {% if 'DEFECTIVE' in item.predicted_label %}fill-defective{% else %}fill-good{% endif %}"
+                         style="width: {{ [item.confidence * 100, 100] | min }}%">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action row -->
+            <div class="action-row">
+                <!-- Correct button -->
+                <form method="POST" action="/submit_review/{{ item.id }}" style="flex:1; display:flex;">
+                    <button type="submit" name="is_correct" value="yes" class="btn-correct">
+                        ✓ Correct
+                    </button>
+                </form>
+
+                <!-- Incorrect form -->
+                <form method="POST" action="/submit_review/{{ item.id }}" class="incorrect-group">
+                    <input  type="text"
+                            name="correct_label"
+                            class="label-input"
+                            placeholder="Correct label (e.g. GOOD)"
+                            autocomplete="off"
+                            required>
+                    <button type="submit" name="is_correct" value="no" class="btn-incorrect">
+                        ✗ Incorrect — Retrain
+                    </button>
+                </form>
+            </div>
+        </div>
 
     </div>
-
+    {% endfor %}
 </div>
+{% endif %}
+
+<!-- Reviewed history -->
+{% if reviewed_items %}
+<div class="section-heading" style="padding-top: 16px;">
+    <h2>Recently Reviewed</h2>
+</div>
+<div class="divider"></div>
+<div class="history-grid">
+    {% for item in reviewed_items %}
+    <div class="history-card">
+        <div class="history-image-wrap">
+            <img src="{{ url_for('static', filename=item.img_path) }}"
+                 alt="Reviewed image"
+                 loading="lazy">
+        </div>
+        <div class="history-body">
+            <div class="history-row">
+                <span class="label">Prediction</span>
+                <span>{{ item.predicted_label }}</span>
+            </div>
+            <div class="history-row">
+                <span class="label">Outcome</span>
+                {% if item.is_correct %}
+                <span class="outcome-correct">✓ Correct</span>
+                {% else %}
+                <span class="outcome-incorrect">✗ Incorrect</span>
+                {% endif %}
+            </div>
+            {% if not item.is_correct and item.human_label %}
+            <div class="history-correction">
+                Corrected to: <strong>{{ item.human_label }}</strong>
+                — model retrained
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<script>
+/* ── Flame canvas (reuse from dashboard.js style) ─── */
+(function () {
+    const canvas = document.getElementById('flame-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W, H;
+    const particles = [];
+
+    function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function rand(a, b) { return a + Math.random() * (b - a); }
+
+    for (let i = 0; i < 35; i++) {
+        particles.push({
+            x: rand(0, 1), y: rand(0, 1),
+            vx: rand(-0.0003, 0.0003),
+            vy: rand(-0.0005, -0.0002),
+            size: rand(1, 3),
+            alpha: rand(0.05, 0.18),
+        });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        for (const p of particles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.y < 0) { p.y = 1; p.x = rand(0, 1); }
+            if (p.x < 0 || p.x > 1) p.vx *= -1;
+            ctx.beginPath();
+            ctx.arc(p.x * W, p.y * H, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255,107,53,${p.alpha})`;
+            ctx.fill();
+        }
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+/* ── Auto-dismiss flash messages after 6s ─── */
+document.querySelectorAll('.flash-msg').forEach(function(el) {
+    setTimeout(function() {
+        el.style.transition = 'opacity 0.5s ease';
+        el.style.opacity = '0';
+        setTimeout(function() { el.remove(); }, 500);
+    }, 6000);
+});
+
+/* ── Confirm before marking incorrect ─── */
+document.querySelectorAll('.btn-incorrect').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+        const form   = btn.closest('form');
+        const input  = form.querySelector('.label-input');
+        const label  = input ? input.value.trim() : '';
+        if (!label) {
+            e.preventDefault();
+            input.focus();
+            input.style.borderColor = 'var(--red)';
+            setTimeout(function() { input.style.borderColor = ''; }, 1500);
+            return;
+        }
+        btn.innerHTML = '<span class="retrain-spinner" style="display:inline-block;"></span> Retraining…';
+        btn.disabled = true;
+        form.closest('.review-card').style.opacity = '0.5';
+    });
+});
+</script>
 
 </body>
 </html>
