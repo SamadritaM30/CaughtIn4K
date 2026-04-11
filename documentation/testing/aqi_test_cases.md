@@ -1,0 +1,60 @@
+# Automated Quality Inspection Test Cases
+
+This project implements an Automated Quality Inspection (AQI) system described in [SRS/SRS.tex](/d:/SEMVI/SE/CaughtIn4K/SRS/SRS.tex:43). The main test targets mapped from the SRS are:
+
+- user authentication and role-based access
+- model training for a product/item
+- batch inspection and anomaly classification
+- review workflow for human-in-the-loop correction
+- mask capture for missed defects
+- history and audit visibility
+- threshold-based retraining
+
+## White-Box Testing
+
+White-box testing in this project focuses on internal logic, branch conditions, helper functions, and control flow.
+
+| ID | Module | Internal path tested | Expected result |
+|---|---|---|---|
+| WB-01 | `auth_helpers.py` | email normalization and validation branches | valid emails pass, malformed emails fail |
+| WB-02 | `routes/auth.py` | verified-email handling for `True`, `"true"`, and false values | only verified Google accounts are accepted |
+| WB-03 | `routes/ml.py` | model-path resolution across primary and legacy output folders | correct `.pt` file path is returned |
+| WB-04 | `routes/review.py` | item-name inference from saved result filename | prefix is extracted correctly |
+| WB-05 | `training.py` | MVTec dataset validation for valid item structure | valid dataset passes validation |
+| WB-06 | `training.py` | MVTec dataset validation when a defect image has no ground-truth mask | validation raises `ValueError` |
+| WB-07 | `routes/review.py` | retrain threshold logic when pending corrections are below threshold | retraining is not started |
+| WB-08 | `routes/review.py` | retrain threshold logic when pending corrections reach threshold | items are marked retrained and background launch is triggered |
+
+## Black-Box Testing
+
+Black-box testing in this project focuses on user-visible behavior without depending on internal code knowledge.
+
+| ID | Feature | Input / action | Expected result |
+|---|---|---|---|
+| BB-01 | Dashboard access | open `/dashboard` while logged out | redirect to login page |
+| BB-02 | User management | admin submits valid email and role | user is created/authorized successfully |
+| BB-03 | User management security | non-admin submits create-user form | request is rejected and no user is created |
+| BB-04 | Inspection workflow | operator starts inspection for an item without trained weights | redirected with model-not-found error |
+| BB-05 | History access control | owner opens their run history; another operator opens same run | owner allowed, other operator gets `403` |
+| BB-06 | Review workflow | operator marks `GOOD` prediction as actually `DEFECTIVE` | system redirects to mask drawing page |
+| BB-07 | Mask submission | operator submits a valid defect mask | mask file is saved and review is marked complete |
+
+## Executed Automated Tests
+
+The executable test suite for these cases is stored in:
+
+- [tests/test_white_box.py](/d:/SEMVI/SE/CaughtIn4K/tests/test_white_box.py:1)
+- [tests/test_black_box.py](/d:/SEMVI/SE/CaughtIn4K/tests/test_black_box.py:1)
+
+Run command:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+Latest local execution result:
+
+- Date: 2026-04-11
+- Total executed tests: 15
+- Status: 15 passed, 0 failed
+- Notes: the run completed successfully in the local development environment using Python `unittest`
