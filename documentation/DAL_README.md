@@ -105,11 +105,13 @@ Fields:
 - `username`
 - `password`
 - `role`
+- `access_revoked`
 
 Purpose:
 
 - stores application users,
 - supports login and role-based access,
+- supports revoking/restoring account access without deleting historical inspection data,
 - identifies who is a Quality Operator, Manufacturing Engineer, or System Administrator.
 
 #### `InspectionRun`
@@ -164,6 +166,7 @@ Fields include:
 - `id`
 - `img_path`
 - `img_name`
+- `inspection_run_id`
 - `predicted_label`
 - `confidence`
 - `item_name`
@@ -176,6 +179,7 @@ Fields include:
 Purpose:
 
 - stores human validation of model predictions,
+- links review items back to the inspection run that generated them,
 - tracks whether the operator accepted or corrected the prediction,
 - stores a drawn mask for false-negative defect corrections,
 - tracks whether the correction has already been used for retraining.
@@ -199,6 +203,7 @@ This file handles initial persistence setup.
 Main responsibilities:
 
 - calls `db.create_all()` to create database tables,
+- ensures small SQLite schema compatibility updates such as the `User.access_revoked` column,
 - creates bootstrap admin users using `sync_bootstrap_admins(...)`,
 - creates required directories such as results and model output folders.
 
@@ -244,6 +249,7 @@ DAL-style responsibilities here:
 - searching users by email,
 - creating users,
 - updating user role records,
+- restoring access when a previously revoked Google account is authorized again,
 - committing bootstrap admin users.
 
 Why this matters:
@@ -314,6 +320,8 @@ This file reads persistent data for dashboard rendering.
 Examples:
 
 - fetches all users for the administrator dashboard,
+- calculates administrator overview metrics,
+- fetches recent inspection activity across operators for administrators,
 - fetches recent `InspectionRun` rows for the current operator,
 - fetches review records for images shown in inspection history.
 
@@ -343,12 +351,15 @@ So the route uses DAL helpers plus direct transaction control through `db.sessio
 
 ### 6.5 `routes/admin.py`
 
-This file supports administrator-driven user creation / authorization.
+This file supports administrator-driven user creation / authorization and access management.
 
 DAL-style operations:
 
 - validates and normalizes email,
 - creates or updates user records through `upsert_google_user(...)`,
+- updates user roles,
+- sets `access_revoked=True` when access is revoked,
+- sets `access_revoked=False` when access is restored,
 - commits changes with `db.session.commit()`.
 
 This is another example where controller logic and data persistence are combined.
@@ -366,6 +377,11 @@ Represents a system user.
 Connected to:
 
 - many `InspectionRun` records through `operator_id`
+
+Important account-management detail:
+
+- users are revoked by setting `access_revoked=True`, not by deleting the row
+- this preserves old inspection history and foreign-key references
 
 ### `InspectionRun`
 
@@ -391,11 +407,12 @@ Represents human validation/correction of a model prediction.
 Connected logically to:
 
 - image results and inspection history through `img_name` / `img_path`
+- its parent inspection batch through `inspection_run_id`
 
 Note:
 
-`HumanReview` is not currently enforced through a formal SQL foreign key to `InspectionImageResult`.
-Instead, records are associated at the application level using image names and paths.
+`HumanReview` is linked to `InspectionRun` with `inspection_run_id`, but it is not currently enforced through a formal SQL foreign key to `InspectionImageResult`.
+Individual image-level review matching still uses image names and paths at the application level.
 
 This is a good viva point because it shows awareness of the current design.
 
@@ -409,6 +426,8 @@ The DAL in this system handles the following categories of work:
 
 - create users,
 - update user roles,
+- revoke user access,
+- restore user access,
 - fetch users by email,
 - load users for login sessions.
 
@@ -457,4 +476,3 @@ Relevant files:
 - `app.py`
 
 ---
-
