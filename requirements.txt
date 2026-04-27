@@ -1,0 +1,28 @@
+#                        Web Framework
+Flask==3.1.0
+Flask-Login==0.6.3
+Flask-SQLAlchemy==3.1.1
+
+#                   Database
+SQLAlchemy==2.0.36
+
+#            Computer Vision & Numerics
+opencv-python==4.10.0.84
+numpy==1.26.4
+
+#              Deep Learning
+# Install the correct torch variant for your hardware:
+#   CPU only  → pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#   CUDA 11.8 → pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+#   CUDA 12.1 → pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+torch==2.3.1
+torchvision==0.18.1
+
+#       Anomaly Detection (PatchCore / Anomalib)
+anomalib==1.1.0
+
+#      Testing
+# unittest and unittest.mock are part of the Python standard library (no install needed).
+# Optional: install pytest for richer output and coverage reporting.
+pytest==8.3.3
+coverage==7.6.1
