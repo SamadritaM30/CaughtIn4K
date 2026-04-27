@@ -9,7 +9,7 @@ from models import User
 
 class TestAuthentication(AQITestCase):
 
-    # ── Auth-1 ───────────────────────────────────────────────────────────────
+    #  Auth-1
     def test_TC_AUTH_01_login_page_renders_for_unauthenticated_user(self):
         """Login page returns HTTP 200 for users with no active session."""
 
@@ -25,7 +25,7 @@ class TestAuthentication(AQITestCase):
         self.assertIn(b"login", response.data.lower())
         print("[TC-AUTH-01] PASSED – login page rendered correctly for unauthenticated user.")
 
-    # ── Auth-2 ───────────────────────────────────────────────────────────────
+    #  Auth-2
     def test_TC_AUTH_02_authenticated_user_redirected_from_login(self):
         """Logged-in user hitting /login is redirected to /dashboard."""
 
@@ -45,7 +45,7 @@ class TestAuthentication(AQITestCase):
         self.assertIn("/dashboard", response.headers["Location"])
         print("[TC-AUTH-02] PASSED – authenticated user correctly redirected to dashboard.")
 
-    # ── Auth-3 ───────────────────────────────────────────────────────────────
+    #     Auth-3
     def test_TC_AUTH_03_google_oauth_initiated_state_stored_in_session(self):
         """GET /auth/google redirects to Google and stores CSRF state token."""
 
@@ -73,7 +73,7 @@ class TestAuthentication(AQITestCase):
             self.assertIn("google_oauth_state", sess)
         print("[TC-AUTH-03] PASSED – OAuth redirect issued and state token stored in session.")
 
-    # ── Auth-4 ───────────────────────────────────────────────────────────────
+    #     Auth-4
     def test_TC_AUTH_04_callback_rejects_mismatched_csrf_state(self):
         """Tampered state token in callback causes redirect to /login with error flash."""
 
@@ -102,7 +102,7 @@ class TestAuthentication(AQITestCase):
         self.assertTrue(any("could not be verified" in msg for _, msg in flashes))
         print("[TC-AUTH-04] PASSED – mismatched CSRF state correctly rejected.")
 
-    # ── Auth-5 ───────────────────────────────────────────────────────────────
+    #     Auth-5 
     def test_TC_AUTH_05_callback_blocks_unregistered_email(self):
         """Callback rejects a valid Google user whose email is not in the DB."""
 
@@ -136,7 +136,7 @@ class TestAuthentication(AQITestCase):
         self.assertTrue(any("not authorized" in msg for _, msg in flashes))
         print("[TC-AUTH-05] PASSED – unregistered email correctly blocked.")
 
-    # ── Auth-6 ───────────────────────────────────────────────────────────────
+    #     Auth-6
     def test_TC_AUTH_06_bootstrap_admin_auto_provisioned(self):
         """Bootstrap admin email auto-creates a System Administrator account."""
 
@@ -173,7 +173,7 @@ class TestAuthentication(AQITestCase):
             self.assertEqual(user.role, "System Administrator")
         print("[TC-AUTH-06] PASSED – bootstrap admin auto-provisioned with correct role.")
 
-    # ── Auth-7 ───────────────────────────────────────────────────────────────
+    #  Auth-7 
     def test_TC_AUTH_07_unverified_google_email_rejected(self):
         """email_verified=false causes rejection even if email exists in DB."""
 
@@ -206,7 +206,7 @@ class TestAuthentication(AQITestCase):
         self.assertTrue(any("verified email" in msg for _, msg in flashes))
         print("[TC-AUTH-07] PASSED – unverified Google email correctly rejected.")
 
-    # ── Auth-8 ───────────────────────────────────────────────────────────────
+    #      Auth-8
     def test_TC_AUTH_08_logout_clears_session_and_redirects(self):
         """Logout removes session state and redirects to /login."""
 
@@ -234,7 +234,7 @@ class TestAuthentication(AQITestCase):
             self.assertNotIn("google_oauth_state", sess)
         print("[TC-AUTH-08] PASSED – session cleared and user redirected to login.")
 
-    # ── Auth-9 ───────────────────────────────────────────────────────────────
+    #      Auth-9
     def test_TC_AUTH_09_protected_route_blocks_unauthenticated_access(self):
         """Unauthenticated GET /dashboard is redirected to /login."""
 
@@ -250,7 +250,7 @@ class TestAuthentication(AQITestCase):
         self.assertIn("/login", response.headers["Location"])
         print("[TC-AUTH-09] PASSED – unauthenticated access to /dashboard correctly blocked.")
 
-    # ── Auth-10 ──────────────────────────────────────────────────────────────
+    #      Auth-10 
     def test_TC_AUTH_10_normalize_email_strips_and_lowercases(self):
         """normalize_email trims whitespace and returns lowercase."""
 
@@ -263,7 +263,7 @@ class TestAuthentication(AQITestCase):
         self.assertEqual(result, "user@example.com")
         print("[TC-AUTH-10] PASSED – email correctly normalised.")
 
-    # ── Auth-11 ──────────────────────────────────────────────────────────────
+    #       Auth-11
     def test_TC_AUTH_11_is_valid_email_rejects_malformed_address(self):
         """is_valid_email returns False for bad inputs and True for valid ones."""
 
@@ -282,7 +282,7 @@ class TestAuthentication(AQITestCase):
             self.assertEqual(result, expected)
         print("[TC-AUTH-11] PASSED – all email validation cases correct.")
 
-    # ── Auth-12 ──────────────────────────────────────────────────────────────
+    #      Auth-12 
     def test_TC_AUTH_12_oauth_blocked_when_credentials_not_configured(self):
         """GET /auth/google is rejected with flash when OAuth is not set up."""
 
